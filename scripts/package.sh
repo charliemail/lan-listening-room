@@ -1,7 +1,9 @@
 #!/bin/zsh
 # Release-builds the production app and the dev app and packages each separately into release/
-# as a drag-to-install DMG (app + Applications shortcut). Refuses to package if RoomCore tests fail.
+# as a drag-to-install DMG (create-dmg: arrow background, app + Applications shortcut).
+# Refuses to package if RoomCore tests fail. On success release/ keeps only the DMGs just built.
 # Build folders end in .noindex so Spotlight doesn't list build products next to the installed app.
+# Needs: brew install create-dmg; Finder automation permission (create-dmg lays out the window via AppleScript).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -10,6 +12,13 @@ echo "▶ RoomCore tests"
 
 xcodegen generate >/dev/null
 mkdir -p release build
+
+bg=build/dmg-background.tiff
+swiftc -O scripts/make-dmg-background.swift -o build/make-dmg-background
+build/make-dmg-background build/dmg-bg.png 1
+build/make-dmg-background build/dmg-bg@2x.png 2
+tiffutil -cathidpicheck build/dmg-bg.png build/dmg-bg@2x.png -out "$bg" >/dev/null 2>&1
+built=()
 
 for scheme in LANListen LANListenDev; do
   echo "▶ Release build: $scheme"
@@ -24,14 +33,20 @@ for scheme in LANListen LANListenDev; do
   display="$(plutil -extract CFBundleDisplayName raw "$plist")"
   name=$([[ $scheme == LANListenDev ]] && echo "LANListen-Dev" || echo "LANListen")
 
-  # ponytail: plain Finder window (no background art / icon layout); add a styled .DS_Store if it matters.
   stage="build/dmg.noindex/$scheme"
   rm -rf "$stage" && mkdir -p "$stage"
   ditto "$app" "$stage/$display.app"
-  ln -s /Applications "$stage/Applications"
   dmg="release/$name-$version.dmg"
   rm -f "$dmg"
-  hdiutil create -volname "$display" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$dmg" >/dev/null
+  # Icon positions must match scripts/make-dmg-background.swift.
+  create-dmg --volname "$display" --background "$bg" --window-pos 200 120 --window-size 640 400 \
+    --icon-size 128 --text-size 13 --icon "$display.app" 160 180 --hide-extension "$display.app" \
+    --app-drop-link 480 180 --filesystem HFS+ --format UDZO --hdiutil-quiet "$dmg" "$stage" >/dev/null
   rm -rf "$stage"
+  built+=("$dmg")
   echo "✔ $dmg ($(du -h "$dmg" | cut -f1))"
+done
+
+for f in release/*(N); do
+  (( ${built[(Ie)$f]} )) || { rm -f "$f"; echo "  removed old $f"; }
 done

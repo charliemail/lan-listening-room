@@ -68,6 +68,7 @@
 ### 環境
 - macOS 14+（開發機 26.5.2，Apple Silicon）、Xcode 26.6、Swift 6.3
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)：`brew install xcodegen`
+- [create-dmg](https://github.com/create-dmg/create-dmg)（打包用）：`brew install create-dmg`
 - 依賴（SPM 自動下載）：[stasel/WebRTC](https://github.com/stasel/WebRTC) 156.0.0（BSD）
 
 ### 兩個 App（同一份原始碼，分開打包）
@@ -93,7 +94,8 @@ cd Packages/RoomCore && swift test
 ```bash
 zsh scripts/package.sh
 ```
-腳本會先跑 RoomCore 測試，失敗就不打包；兩個 App 用 Release 設定建置、驗證簽章後輸出拖曳安裝用的 DMG（App ＋「Applications」捷徑）到 `release/`。
+腳本會先跑 RoomCore 測試，失敗就不打包；兩個 App 用 Release 設定建置、驗證簽章後，用 create-dmg 輸出拖曳安裝用的 DMG（箭頭背景、App ＋「Applications」捷徑）到 `release/`，並刪除 `release/` 內其他舊檔，本機只留最新版。
+第一次執行時系統會詢問是否允許終端機控制 Finder（create-dmg 用它排版視窗），請允許。背景圖由 `scripts/make-dmg-background.swift` 產生，圖示座標需與 `package.sh` 一致。
 建置資料夾都以 `.noindex` 結尾，Spotlight 不會把建置產物和已安裝的 App 一起列出。
 
 ### 發布到 GitHub Releases（repo 為 private，只有協作者看得到）
