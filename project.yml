@@ -1,0 +1,80 @@
+name: LANListen
+options:
+  bundleIdPrefix: local.lanlisten
+  deploymentTarget:
+    macOS: "14.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.3.0"
+    CURRENT_PROJECT_VERSION: "13"
+    # Self-signed "LANListen Dev" (login keychain) keeps the TCC screen-recording grant across rebuilds;
+    # ad-hoc changes identity every build. Developer ID + notarization needs a paid Apple Developer account.
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "LANListen Dev"
+  configs:
+    Release:
+      # Xcode otherwise injects get-task-allow (lets any debugger attach) into the Release signature.
+      CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
+packages:
+  WebRTC:
+    url: https://github.com/stasel/WebRTC.git
+    exactVersion: 156.0.0
+  RTCAudioDeviceShim:
+    path: Packages/RTCAudioDeviceShim
+  RoomCore:
+    path: Packages/RoomCore
+
+# Two apps from one source tree, packaged separately (scripts/package.sh):
+# - LANListen: production, room only; LANListen/Dev is not compiled in.
+# - LANListenDev: adds the Phase 0 debug tabs (DEV_TOOLS); own bundle ID, so permissions and settings are separate.
+targetTemplates:
+  App:
+    type: application
+    platform: macOS
+    dependencies:
+      - package: WebRTC
+      - package: RTCAudioDeviceShim
+      - package: RoomCore
+    entitlements:
+      path: LANListen/LANListen.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+        com.apple.security.network.server: true
+
+targets:
+  LANListen:
+    templates: [App]
+    sources:
+      - path: LANListen
+        excludes: ["Dev/**"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: local.lanlisten.LANListen
+        APP_DISPLAY_NAME: LAN Listen
+    info:
+      path: LANListen/Info.plist
+      properties:
+        CFBundleDisplayName: $(APP_DISPLAY_NAME)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: zh-Hant
+        LSMinimumSystemVersion: "14.0"
+        LSApplicationCategoryType: public.app-category.music
+        NSLocalNetworkUsageDescription: 用於在區網中尋找並加入收聽房間。
+        NSBonjourServices: [_lanlisten._tcp]
+
+  # Shares the production Info.plist (display name comes from APP_DISPLAY_NAME).
+  LANListenDev:
+    templates: [App]
+    sources:
+      - path: LANListen
+        excludes: ["Info.plist"]
+    settings:
+      base:
+        INFOPLIST_FILE: LANListen/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: local.lanlisten.LANListen.dev
+        PRODUCT_NAME: LANListenDev
+        APP_DISPLAY_NAME: LAN Listen Dev
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) DEV_TOOLS

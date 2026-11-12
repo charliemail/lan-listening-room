@@ -1,0 +1,15 @@
+# Build output (regenerate with xcodebuild / scripts/package.sh)
+build/
+release/
+
+# Generated from project.yml by `xcodegen generate`
+LANListen.xcodeproj/
+
+# SwiftPM caches
+.build/
+.swiftpm/
+
+# macOS / Xcode noise
+.DS_Store
+xcuserdata/
+*.xcuserstate
