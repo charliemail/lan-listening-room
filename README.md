@@ -10,7 +10,9 @@
 ## 給使用者
 
 ### 安裝
-1. 拿 `release/LANListen-<版本>.zip`（**不是** `LANListen-Dev-…`，那是測試版），解壓後把 LAN Listen 拖進「應用程式」。
+需求：macOS 14 以上、Apple Silicon（M 系列）；Intel Mac 目前不支援。
+
+1. 到 [GitHub Releases](https://github.com/charliemail/lan-listening-room/releases) 下載 `LANListen-<版本>.zip`（**不是** `LANListen-Dev-…`，那是測試版），解壓後把 LAN Listen 拖進「應用程式」。
 2. 第一次開啟會被系統擋下（尚未經 Apple 公證）：按「完成」→「系統設定 → 隱私權與安全性」最下方按「**強制打開**」→ 輸入密碼。
 3. 系統會詢問兩個權限：
    | 權限 | 用途 | 何時需要 |
@@ -91,6 +93,13 @@ cd Packages/RoomCore && swift test
 zsh scripts/package.sh
 ```
 腳本會先跑 RoomCore 測試，失敗就不打包；兩個 App 用 Release 設定建置、驗證簽章後輸出到 `release/`。
+
+### 發布到 GitHub Releases（repo 為 private，只有協作者看得到）
+先 commit 並 push，再以該 commit 建立 release（`--target` 需完整 SHA；未經公證前標為預先發行）：
+```bash
+gh release create v<版本> --target "$(git rev-parse HEAD)" --prerelease --title "LAN Listen <版本> (build <建置號>)" --notes-file <說明檔> release/LANListen-<版本>-<建置號>.zip release/LANListen-Dev-<版本>-<建置號>.zip
+```
+說明檔建議包含：下載哪個檔、安裝（強制打開）、已知限制、SHA-256（`shasum -a 256 release/*<版本>-<建置號>*`）。範例見 v0.3.0。
 
 ### 簽章
 - 目前用本機自簽憑證 `LANListen Dev`（鑰匙圈存取 → 憑證輔助程式 → 製作憑證，類型「程式碼簽署」）。讓「螢幕與系統錄音」授權在重新建置後保留；ad-hoc 簽章每次建置都會失效。別台 Mac 要建置需建立同名憑證，或改 `project.yml` 的 `CODE_SIGN_IDENTITY`。
