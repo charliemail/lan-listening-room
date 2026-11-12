@@ -12,7 +12,8 @@
 ### 安裝
 需求：macOS 14 以上、Apple Silicon（M 系列）；Intel Mac 目前不支援。
 
-1. 到 [GitHub Releases](https://github.com/charliemail/lan-listening-room/releases) 下載 `LANListen-<版本>.zip`（**不是** `LANListen-Dev-…`，那是測試版），解壓後把 LAN Listen 拖進「應用程式」。
+1. 到 [GitHub Releases](https://github.com/charliemail/lan-listening-room/releases) 下載 `LANListen-<版本>.dmg`（**不是** `LANListen-Dev-…`，那是測試版）。
+   打開後把視窗裡的 **LAN Listen** 拖到旁邊的 **Applications** 資料夾，再退出磁碟映像。
 2. 第一次開啟會被系統擋下（尚未經 Apple 公證）：按「完成」→「系統設定 → 隱私權與安全性」最下方按「**強制打開**」→ 輸入密碼。
 3. 系統會詢問兩個權限：
    | 權限 | 用途 | 何時需要 |
@@ -75,29 +76,30 @@
 | 顯示名稱 | LAN Listen | LAN Listen Dev |
 | Bundle ID | `local.lanlisten.LANListen` | `local.lanlisten.LANListen.dev`（權限、設定各自獨立） |
 | 內容 | 只有房間 | 加上「雙機實驗」「擷取測試」除錯分頁（`DEV_TOOLS`，`LANListen/Dev/` 只編進測試版） |
-| zip | `release/LANListen-<版本>-<建置號>.zip` | `release/LANListen-Dev-<版本>-<建置號>.zip` |
+| 安裝包 | `release/LANListen-<版本>-<建置號>.dmg` | `release/LANListen-Dev-<版本>-<建置號>.dmg` |
 
 ### 建置與測試
 ```bash
 xcodegen generate
 ```
 ```bash
-xcodebuild -project LANListen.xcodeproj -scheme LANListen -configuration Debug -derivedDataPath build/DerivedData build
+xcodebuild -project LANListen.xcodeproj -scheme LANListen -configuration Debug -derivedDataPath build/DerivedData.noindex build
 ```
 ```bash
 cd Packages/RoomCore && swift test
 ```
 
-### 打包（Release，兩個 App 各一個 zip）
+### 打包（Release，兩個 App 各一個 DMG）
 ```bash
 zsh scripts/package.sh
 ```
-腳本會先跑 RoomCore 測試，失敗就不打包；兩個 App 用 Release 設定建置、驗證簽章後輸出到 `release/`。
+腳本會先跑 RoomCore 測試，失敗就不打包；兩個 App 用 Release 設定建置、驗證簽章後輸出拖曳安裝用的 DMG（App ＋「Applications」捷徑）到 `release/`。
+建置資料夾都以 `.noindex` 結尾，Spotlight 不會把建置產物和已安裝的 App 一起列出。
 
 ### 發布到 GitHub Releases（repo 為 private，只有協作者看得到）
 先 commit 並 push，再以該 commit 建立 release（`--target` 需完整 SHA；未經公證前標為預先發行）：
 ```bash
-gh release create v<版本> --target "$(git rev-parse HEAD)" --prerelease --title "LAN Listen <版本> (build <建置號>)" --notes-file <說明檔> release/LANListen-<版本>-<建置號>.zip release/LANListen-Dev-<版本>-<建置號>.zip
+gh release create v<版本> --target "$(git rev-parse HEAD)" --prerelease --title "LAN Listen <版本> (build <建置號>)" --notes-file <說明檔> release/LANListen-<版本>-<建置號>.dmg release/LANListen-Dev-<版本>-<建置號>.dmg
 ```
 說明檔建議包含：下載哪個檔、安裝（強制打開）、已知限制、SHA-256（`shasum -a 256 release/*<版本>-<建置號>*`）。範例見 v0.3.0。
 
