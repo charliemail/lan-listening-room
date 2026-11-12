@@ -286,7 +286,7 @@ Phase 1 只做轉移的「權限交接」；交接後的音訊切換（epoch、�
 | 正式版／測試版分開（兩個 target、`DEV_TOOLS`、`LANListen/Dev/`） | ✅ 已驗證正式版二進位不含除錯畫面符號與字串 |
 | Release 建置與打包 `zsh scripts/package.sh` | ✅ 先跑測試；兩個 zip 分開輸出；Release 移除 `get-task-allow` |
 | README（使用說明、角色、限制、安全、排障、開發者建置） | ✅ |
-| 圖示 | 用系統預設圖示占位，待設計稿 |
+| 圖示 | ✅ 2026-11-12 使用者提供設計稿（0.3.0 (14)）；黑底圓角外側以邊角區域填色轉透明，套 macOS 824/1024 版面；正式版與測試版共用 |
 | Developer ID 簽署＋公證 | ⏳ 需付費帳號 |
 | 多台 Mac 最終驗收 | ⏳ 見 testing.md「最終驗收」F1～F13 |
 

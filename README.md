@@ -107,4 +107,5 @@ zsh scripts/package.sh
 | `Packages/RTCAudioDeviceShim/` | 讓 Swift 使用 WebRTC 自訂音訊裝置（macOS 版缺 header） |
 | `Experiments/WebRTCProbe/` | 單機 WebRTC loopback 驗證 |
 | `scripts/package.sh` | Release 打包 |
+| `design/app-icon-source.webp`、`scripts/app-icon.sh` | App 圖示原稿與產生腳本：換圖後執行 `zsh scripts/app-icon.sh`（自動去掉黑底圓角外側、套 macOS 824/1024 版面、輸出所有尺寸） |
 | `docs/` | 需求、計畫、架構、測試、相容性 |
